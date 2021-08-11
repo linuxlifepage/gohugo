@@ -1,0 +1,114 @@
+1) Проверить hugo
+   Попробовать запустить локально
+   	cd MyBlog/linuxlife.page
+   	hugo server -D
+
+2) Обновить hugo
+   	hugo version
+   	brew upgrade hugo
+
+3) Обновить hello-friend тему
+   	cd MyBlog/linuxlife.page/themes
+   	rm -rf hugo-theme-hello-friend
+   	git clone https://github.com/panr/hugo-theme-hello-friend.git
+
+4) Попробовать запустить локально
+   	cd MyBlog/linuxlife.page
+   	hugo server -D
+
+5) Поменять цвет шрифта в директории темы (с #a9a9b3 на #ffefcc) и розового курсора
+   ./static/assets/style.css
+   .//assets/css/variables.css
+   .//assets/css/prism.css
+
+   static/assets/style.css  (ищем класс logo__cursor и меняем #fe5186 на #3fffd9)
+
+   Запустить 
+   cd MyBlog/linuxlife.page
+   hugo server -D
+
+6) Задеплоить
+	- создать статику
+	  cd MyBlog/linuxlife.page
+	  hugo -d ../linuxlife.page_toServer
+
+	- Закачать на сервер через rsync
+	  cd MyBlog/
+	  rsync -azvh --delete --progress linuxlife.page_toServer/ -e "ssh -i $HOME/.ssh/id_rsa_IP_ADDRESS" ubuntu@IP_ADDRESS:/home/ubuntu/linuxlife.page/
+
+	- Скопировать в www и пофиксить права
+	  ssh -i /Users/dmitry/.ssh/id_rsa_IP_ADDRESS -t ubuntu@IP_ADDRESS 'sudo cp -rf /home/ubuntu/linuxlife.page/* /var/www/linuxlife.page/ && sudo chown www-data:www-data -R /var/www/linuxlife.page/ && sudo chmod 755 -R /var/www/linuxlife.page/'
+
+7) Добавлять посты в Typora
+   - Открыть папку MyBlog/linuxlife.page/content
+   - Переключиться на дерево файлов в списке статей
+   - Создаем новый пост на основе старого
+   	 cd MyBlog/linuxlife.page
+   	 hugo new posts/my-second-post.md
+
+   - Вид - Режим просмотра исходного кода
+   
+   - Подготавливаем картинку на tinypng.com и копируем ее для нового поста в
+     MyBlog/linuxlife.page/static/img/google.jpg
+
+   - Удаляем абсолютный путь из картинки и оставляем так /img/google.jpg
+
+   - Сохраняем и деплоим
+     cd MyBlog/linuxlife.page/
+     hugo -d ../linuxlife.page_toServer && cd ../
+	   rsync -azvh --delete --progress linuxlife.page_toServer/ -e "ssh -i $HOME/.ssh/id_rsa" ubuntu@IP_ADDRESS:/home/ubuntu/linuxlife.page/
+
+	 Фиксим права (далее сделаем это с помощью автоскрипта)
+	 ssh -i /Users/dmitry/.ssh/id_rsa -t ubuntu@IP_ADDRESS 'sudo cp -rf /home/ubuntu/linuxlife.page/* /var/www/linuxlife.page/ && sudo chown www-data:www-data -R /var/www/linuxlife.page/ && sudo chmod 755 -R /var/www/linuxlife.page/'
+
+   - Смотрим результат linuxlife.page
+
+8) Автоматизировать деплой по клавише
+   - Создаем баш скрипт
+   	 vim /Users/dmitry/NextCloud/DocumentsMac/web/MyBlog/deploy_hugo.sh
+
+   	 	#!/bin/bash
+   	 	cd /Users/dmitry/NextCloud/DocumentsMac/web/MyBlog/linuxlife.page/
+
+    	/usr/local/bin/hugo -d ../linuxlife.page_toServer && cd ../
+    	rsync -azvh --delete --progress linuxlife.page_toServer/ -e "ssh -i /Users/dmitry/.ssh/id_rsa" ubuntu@IP_ADRESS:/home/ubuntu/linuxlife.page/
+
+		ssh -i /Users/dmitry/.ssh/id_rsa -t ubuntu@IP_ADDRESS 'sudo cp -rf /home/ubuntu/linuxlife.page/* /var/www/linuxlife.page/ && sudo chown www-data:www-data -R /var/www/linuxlife.page/ && sudo chmod 755 -R /var/www/linuxlife.page/'
+
+   - Назначаем права для скрипта
+   chmod u+x /Users/dmitry/NextCloud/DocumentsMac/web/MyBlog/deploy_hugo.sh
+
+   - Создаем ДРУГОЙ скрипт по горячей клавише (AppleScript)
+   		Подробности вязты отсюда: https://apple.stackexchange.com/questions/175215/how-do-i-assign-a-keyboard-shortcut-to-an-applescript-i-wrote
+
+   		1. Open Automator. (Открыть Автоматор)
+		2. Make a new Quick Action. (Кликнуть )
+		3. Make sure it receives 'no input' at all programs.
+		   "Убедитесь, что он получает «без ввода» во всех программах."
+		4. Select "Run Apple Script" and type in your code.
+
+			# Script
+			on run {input, parameters}	
+				do shell script "bash /Users/dmitry/NextCloud/DocumentsMac/web/MyBlog/deploy_hugo.sh"	
+				return input
+			end run
+
+		5. Save!
+
+		Now go to System Preferences -- Keyboard -- Shortcuts. 
+		Select Services from the sidebar and find your service. Add a shortcut by double clicking (none).
+
+		"Теперь перейдите в системные настройки -- клавиатуры -- ярлыки. Выберите Сервисы в боковой панели и найдите свой сервис. Добавьте ярлык, дважды щелкнув (нет). "
+	
+		И добавить разрешения для программ (Терминал, Сафари, Хром, Typora, Телеграмм, Файндер)
+		Настройки - Безопасность - Accesebility
+				и также добавить в Файлы и доступ тамже
+
+9) ТЕСТИРУЕМ созданием нового поста
+
+
+Полезные ссылки:
+ - Маркдаун синтаксис
+   https://hugo-hello-friend.now.sh/posts/markdown-syntax/
+ - Тема hugo-theme-hello-friend
+   https://github.com/panr/hugo-theme-hello-friend/#how-to-start
