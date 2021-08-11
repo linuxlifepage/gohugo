@@ -1,2 +1,1 @@
-# gohugo
-About hugo generate static web pages
+# СМОТРИ hugo.script
